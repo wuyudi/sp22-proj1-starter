@@ -316,8 +316,7 @@ bool test_next_square_board_2() {
   ##############
   */
 
-  game_state_t* state = create_default_state();
-
+  game_state_t *state = create_default_state();
   // set up board
   set_board_at(state, 6, 4, '*');
   save_board(state, "unit-test-out.snk");

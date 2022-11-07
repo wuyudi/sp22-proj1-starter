@@ -39,19 +39,22 @@ game_state_t *create_default_state() {
   state->x_size = 14;
   state->y_size = 10;
   state->num_snakes = 1;
-  state->board =
-      malloc(sizeof(char) * ((state->x_size + 2) * (state->y_size + 2)));
-  state->board[0] = "##############";
-  state->board[1] = "#            #";
-  state->board[2] = "#        *   #";
-  state->board[3] = "#            #";
-  state->board[4] = "#   d>       #";
-  state->board[5] = "#            #";
-  state->board[6] = "#            #";
-  state->board[7] = "#            #";
-  state->board[8] = "#            #";
-  state->board[9] = "##############";
-  state->snakes = malloc(sizeof(snake_t) * state->num_snakes);
+  // https://stackoverflow.com/questions/2614249/dynamic-memory-for-2d-char-array
+  state->board = calloc(state->x_size, sizeof(char *));
+  for (int i = 0; i < state->x_size; i++) {
+    state->board[i] = calloc(state->y_size, sizeof(char));
+  }
+  strcpy(state->board[0], "##############");
+  strcpy(state->board[1], "#            #");
+  strcpy(state->board[2], "#        *   #");
+  strcpy(state->board[3], "#            #");
+  strcpy(state->board[4], "#   d>       #");
+  strcpy(state->board[5], "#            #");
+  strcpy(state->board[6], "#            #");
+  strcpy(state->board[7], "#            #");
+  strcpy(state->board[8], "#            #");
+  strcpy(state->board[9], "##############");
+  state->snakes = calloc(state->num_snakes, sizeof(snake_t));
   // The tail is at row 4, column 4, and the head is at row 4, column 5.
   state->snakes[0].head_x = 5;
   state->snakes[0].head_y = 4;
@@ -74,10 +77,7 @@ void free_state(game_state_t *state) {
 void print_board(game_state_t *state, FILE *fp) {
   // TODO: Implement this function.
   for (size_t i = 0; i < state->y_size; i++) {
-    for (size_t j = 0; j < state->x_size; j++) {
-      fprintf(fp, "%s", &state->board[i][j]);
-    }
-    fprintf(fp, "\n");
+    fprintf(fp, "%s\n", state->board[i]);
   }
 }
 /* Saves the current state into filename (already implemented for you). */
@@ -88,44 +88,58 @@ void save_board(game_state_t *state, char *filename) {
 }
 
 /* Task 4.1 */
+// bool is_tail(char c): Returns true if c is part of the snake's tail. The
+// snake's tail consists of these characters: wasd. Returns false otherwise.
 static bool is_tail(char c) {
   // TODO: Implement this function.
-  return c == 'T';
-  return true;
+  return c == 'w' || c == 'a' || c == 's' || c == 'd';
 }
-
+// bool is_snake(char c): Returns true if c is part of the snake. The snake
+// consists of these characters: wasd^<>vx. Returns false otherwise.
 static bool is_snake(char c) {
   // TODO: Implement this function.
-  return c == 'H' || c == 'T';
-  return true;
+  char s[] = "wasd^<>vx";
+  for (size_t i = 0; i < strlen(s); i++) {
+    if (c == s[i]) {
+      return true;
+    }
+  }
+  return false;
 }
-
+// char body_to_tail(char c): Converts a character in the snake's body (^<>v) to
+// the matching character representing the snake's tail (wasd).
 static char body_to_tail(char c) {
   // TODO: Implement this function.
-  return 'T';
-  return '?';
+  if (c == '^') {
+    return 'w';
+  } else if (c == '<') {
+    return 'a';
+  } else if (c == 'v') {
+    return 's';
+  } else if (c == '>') {
+    return 'd';
+  }
+  return c;
 }
-
+// int incr_x(char c): Returns 1 if c is > or d. Returns -1 if c is < or a.
+// Returns 0 otherwise.
 static int incr_x(char c) {
   // TODO: Implement this function.
-  if (c == 'E') {
+  if (c == '>' || c == 'd') {
     return 1;
-  } else if (c == 'W') {
+  } else if (c == '<' || c == 'a') {
     return -1;
-  } else {
-    return 0;
   }
   return 0;
 }
-
+// int incr_y(char c): Returns 1 if c is v or s. Returns -1 if c is ^ or w.
+// Returns 0 otherwise.
 static int incr_y(char c) {
   // TODO: Implement this function.
-  if (c == 'N') {
-    return -1;
-  } else if (c == 'S') {
+  if (c == 'v' || c == 's') {
     return 1;
-  } else {
-    return 0;
+  } else if (c == '^' || c == 'w') {
+    return -1;
   }
   return 0;
 }
@@ -133,8 +147,11 @@ static int incr_y(char c) {
 /* Task 4.2 */
 static char next_square(game_state_t *state, int snum) {
   // TODO: Implement this function.
-  snake_t *snake = state->snakes + snum;
-  return '?';
+  int x = state->snakes[snum].head_x;
+  int y = state->snakes[snum].head_y;
+  int dx = incr_x(get_board_at(state, x, y));
+  int dy = incr_y(get_board_at(state, x, y));
+  return get_board_at(state, x + dx, y + dy);
 }
 
 /* Task 4.3 */
