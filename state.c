@@ -202,14 +202,19 @@ void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
 game_state_t *load_board(char *filename) {
   // TODO: Implement this function.
   FILE *f = fopen(filename, "r");
-  game_state_t *state = malloc(sizeof(game_state_t));
-  state->snakes = malloc(sizeof(snake_t));
-  state->snakes->live = true;
-
-  int x = 0;
-  int y = 0;
-  int c;
-  return NULL;
+  if (f == NULL) {
+    return NULL;
+  }
+  game_state_t *state = create_default_state();
+  int i = 0;
+  while (fgets(state->board[i], 100, f) != NULL) {
+    state->board[i][strlen(state->board[i]) - 1] = '\0';
+    i++;
+  }
+  state->x_size = strlen(state->board[0]);
+  state->y_size = i;
+  fclose(f);
+  return state;
 }
 
 /* Task 6.1 */
