@@ -40,7 +40,7 @@ game_state_t *create_default_state() {
   state->y_size = 10;
   state->num_snakes = 1;
   state->board =
-      malloc(sizeof(char) * ((state->x_size + 1) * (state->y_size + 1)));
+      malloc(sizeof(char) * ((state->x_size + 2) * (state->y_size + 2)));
   state->board[0] = "##############";
   state->board[1] = "#            #";
   state->board[2] = "#        *   #";
