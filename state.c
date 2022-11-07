@@ -184,11 +184,10 @@ static void update_tail(game_state_t *state, int snum) {
 /* Task 4.5 */
 void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
   // TODO: Implement this function.
-  char next = next_square(state, 0);
-  if (is_snake(next)) {
+  char const next = next_square(state, 0);
+  if (is_snake(next) || next == '#') {
     state->snakes->live = false;
-  } else if (is_tail(next)) {
-    state->snakes->live = false;
+    set_board_at(state, state->snakes->head_x, state->snakes->head_y, 'x');
   } else if (next == ' ') {
     update_head(state, 0);
     update_tail(state, 0);
