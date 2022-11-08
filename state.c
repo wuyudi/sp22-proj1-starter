@@ -218,69 +218,50 @@ game_state_t *load_board(char *filename) {
 }
 
 /* Task 6.1 */
+// https://github.com/Jonaschann/shop/blob/2a7c51735c3e9b97debe94d9652e931533117128/sp22-proj1/state.c
 static void find_head(game_state_t *state, int snum) {
   // TODO: Implement this function.
-  int tail_x = state->snakes[snum].tail_x;
-  int tail_y = state->snakes[snum].tail_y;
-  char tail = get_board_at(state, tail_x, tail_y);
-  while (incr_x(tail) != 0 || incr_y(tail) != 0) {
-    tail_x += incr_x(tail);
-    tail_y += incr_y(tail);
-    tail = get_board_at(state, tail_x, tail_y);
+  snake_t *snake = state->snakes + snum;
+  int x = snake->tail_x, y = snake->tail_y;
+  int prevx, prevy;
+  char c = get_board_at(state, snake->tail_x, snake->tail_y);
+  while (is_snake(c)) {
+    prevx = x;
+    prevy = y;
+    x += incr_x(c);
+    y += incr_y(c);
+    // snake is dead
+    if (x == prevx && y == prevy) {
+      break;
+    }
+    c = get_board_at(state, x, y);
   }
-  state->snakes[snum].head_x = tail_x;
-  state->snakes[snum].head_y = tail_y + 1; // it seems that this may work...
+  snake->head_x = prevx;
+  snake->head_y = prevy;
 }
-
 /* Task 6.2 */
 
-static void find_head_dfs(game_state_t *state, int *snum,
-                          bool visited[100][100], int x, int y) {
-  if (x < 0 || x >= state->x_size || y < 0 || y >= state->y_size) {
-    return;
-  }
-  visited[x][y] = true;
-  char head = get_board_at(state, x, y);
-  while (incr_x(head) != 0 || incr_y(head) != 0) {
-    x += incr_x(head);
-    y += incr_y(head);
-    head = get_board_at(state, x, y);
-    visited[x][y] = true;
-  }
-  state->snakes[*snum].head_x = x;
-  state->snakes[*snum].head_y = y + 1; // it seems that this may work...
-  (*snum)++;
-  state->num_snakes = *snum;
-}
-// your need to iter 4 directions to find the tail.
-static void find_tail_dfs(game_state_t *state, int *snum,
-                          bool visited[100][100], int x, int y) {
-  if (x < 0 || x >= state->x_size || y < 0 || y >= state->y_size) {
-    return;
-  }
-  visited[x][y] = true;
-  char tail = get_board_at(state, x, y);
-  while (incr_x(tail) != 0 || incr_y(tail) != 0) {
-    x -= incr_x(tail);
-    y -= incr_y(tail);
-    tail = get_board_at(state, x, y);
-    visited[x][y] = true;
-  }
-  state->snakes[*snum].head_x = x;
-  state->snakes[*snum].head_y = y; // it seems that this may work...
-}
-
-// whenever we find a snake, we need to find its head and tail.
 game_state_t *initialize_snakes(game_state_t *state) {
   // TODO: Implement this function.
-  int snum = 0;
-  bool visited[100][100] = {false};
+  state->num_snakes = 0;
+  // count the number of snakes
   for (int i = 0; i < state->y_size; i++) {
     for (int j = 0; j < state->x_size; j++) {
-      if (is_snake(get_board_at(state, j, i)) && !visited[i][j]) {
-        printf("%d  %d\n", j, i);
-        find_head_dfs(state, &snum, visited, j, i);
-        find_tail_dfs(state, &snum, visited, j, i);
+      if (is_tail(get_board_at(state, j, i))) {
+        state->num_snakes++;
+      }
+    }
+  }
+  state->snakes = realloc(state->snakes, state->num_snakes * sizeof(snake_t));
+  int snum = 0;
+  for (size_t i = 0; i < state->y_size; i++) {
+    for (size_t j = 0; j < state->x_size; j++) {
+      if (is_tail(get_board_at(state, j, i))) {
+        state->snakes[snum].tail_x = j;
+        state->snakes[snum].tail_y = i;
+        find_head(state, snum);
+        state->snakes[snum].live = true;
+        snum++;
       }
     }
   }
