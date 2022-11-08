@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
   // TODO: Update state. Use the deterministic_food function
   // (already implemented in state_utils.h) to add food.
-
+  update_state(state, deterministic_food);
   // Write updated board to file, or print to stdout if no output filename was
   // given
   if (out_filename != NULL) {

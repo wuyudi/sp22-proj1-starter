@@ -193,7 +193,6 @@ void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
       set_board_at(state, state->snakes[snum].head_x,
                    state->snakes[snum].head_y, 'x');
     } else if (isspace(next)) {
-      printf("before is empty\n");
       update_head(state, snum);
       update_tail(state, snum);
     } else if (next == '*') {
@@ -212,6 +211,10 @@ game_state_t *load_board(char *filename) {
     return NULL;
   }
   game_state_t *state = create_default_state();
+  state->board = realloc(state->board, 100 * sizeof(char *));
+  for (size_t i = 0; i < 100; i++) {
+    state->board[i] = malloc(200 * sizeof(char));
+  }
   int i = 0;
   while (fgets(state->board[i], 100, f) != NULL) {
     state->board[i][strlen(state->board[i]) - 1] = '\0';
