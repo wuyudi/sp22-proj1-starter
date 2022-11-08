@@ -260,11 +260,11 @@ game_state_t *initialize_snakes(game_state_t *state) {
   }
   state->snakes = realloc(state->snakes, state->num_snakes * sizeof(snake_t));
   int snum = 0;
-  for (size_t i = 0; i < state->y_size; i++) {
-    for (size_t j = 0; j < state->x_size; j++) {
-      if (is_tail(get_board_at(state, j, i))) {
-        state->snakes[snum].tail_x = j;
-        state->snakes[snum].tail_y = i;
+  for (size_t x = 0; x < state->x_size; x++) {
+    for (size_t y = 0; y < state->y_size; y++) {
+      if (is_tail(get_board_at(state, x, y))) {
+        state->snakes[snum].tail_x = x;
+        state->snakes[snum].tail_y = y;
         find_head(state, snum);
         state->snakes[snum].live = true;
         snum++;
