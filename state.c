@@ -1,5 +1,6 @@
 #include "state.h"
 #include "snake_utils.h"
+#include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -151,7 +152,8 @@ static char next_square(game_state_t *state, int snum) {
   int y = state->snakes[snum].head_y;
   int dx = incr_x(get_board_at(state, x, y));
   int dy = incr_y(get_board_at(state, x, y));
-  return get_board_at(state, x + dx, y + dy);
+  char const c = get_board_at(state, x + dx, y + dy);
+  return c;
 }
 
 /* Task 4.3 */
@@ -174,8 +176,8 @@ static void update_tail(game_state_t *state, int snum) {
   char old_tail = get_board_at(state, x, y);
   int new_tail_x = x + incr_x(old_tail);
   int new_tail_y = y + incr_y(old_tail);
-  char new_tail = get_board_at(state, new_tail_x, new_tail_y);
-  set_board_at(state, new_tail_x, new_tail_y, body_to_tail(new_tail));
+  set_board_at(state, new_tail_x, new_tail_y,
+               body_to_tail(get_board_at(state, new_tail_x, new_tail_y)));
   set_board_at(state, x, y, ' ');
   state->snakes[snum].tail_x = new_tail_x;
   state->snakes[snum].tail_y = new_tail_y;
@@ -184,16 +186,20 @@ static void update_tail(game_state_t *state, int snum) {
 /* Task 4.5 */
 void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
   // TODO: Implement this function.
-  char const next = next_square(state, 0);
-  if (is_snake(next) || next == '#') {
-    state->snakes->live = false;
-    set_board_at(state, state->snakes->head_x, state->snakes->head_y, 'x');
-  } else if (next == ' ') {
-    update_head(state, 0);
-    update_tail(state, 0);
-  } else if (next == '*') {
-    update_head(state, 0);
-    add_food(state);
+  for (size_t snum = 0; snum < state->num_snakes; snum++) {
+    char const next = next_square(state, snum);
+    if (is_snake(next) || next == '#') {
+      state->snakes[snum].live = false;
+      set_board_at(state, state->snakes[snum].head_x,
+                   state->snakes[snum].head_y, 'x');
+    } else if (isspace(next)) {
+      printf("before is empty\n");
+      update_head(state, snum);
+      update_tail(state, snum);
+    } else if (next == '*') {
+      update_head(state, snum);
+      add_food(state);
+    }
   }
   return;
 }
